@@ -70,11 +70,19 @@ The return value is an object with a function `.exec(tasks, onDone)`. Calling th
 
     var parallel = require('miniq');
 
-    var p = parallel(3, [
-      function(done) {
-        // add more tasks
-        p.exec([ function(done) { ... } }], function(err) { ... });
-        done();
-      },
-      function b(done) { ... }
-    ], function(err) { ... });
+    function Foo() {
+      this.queue = parallel(12);
+    }
+
+    Foo.prototype.bar = function() {
+      this.queue.exec(tasks, function(err) { ... });
+    };
+
+    Foo.prototype.all = function() {
+      // when the queue is empty
+      this.queue.once('empty', function() {
+        console.log('All done!');
+      });
+
+      this.queue.exec(tasks);
+    };
