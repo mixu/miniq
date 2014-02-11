@@ -9,7 +9,9 @@
   "dependencies": {
     "microee": "~0.0.5"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gluejs": "~2.3.2"
+  },
   "scripts": {
     "test": "node test/test.js"
   },
