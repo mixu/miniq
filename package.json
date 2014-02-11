@@ -1,0 +1,32 @@
+{
+  "name": "miniq",
+  "version": "0.0.0",
+  "description": "Yet another tiny async control flow library, implements parallelLimit, with the ability to share the concurrency-limited queue.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "microee": "~0.0.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mixu/miniq.git"
+  },
+  "keywords": [
+    "queue",
+    "async",
+    "asynchronous",
+    "flow",
+    "control"
+  ],
+  "author": "Mikito Takada <mikito.takada@gmail.com> (http://mixu.net/)",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/mixu/miniq/issues"
+  }
+}

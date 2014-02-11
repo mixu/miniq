@@ -15,9 +15,21 @@ miniq has one advanced feature, which is the ability to share the concurrency-li
 
 For example, if you are writing something that does a recursive directory traversal and does various (file system) operations, you can push all the operations into the same queue. This will allow you to limit (file system) concurrency across multiple operations.
 
-## Example: using miniq as a replacement for `parallelLimit`
+## Installation
 
-Example:
+    npm install --save miniq
+
+## API
+
+`parallel(limit, tasks, [onDone])`:
+
+- `limit` is a number which controls the maximum number of concurrent tasks. Set `limit = 1` for serial execution and `limit = Infinity` for unlimited parallelism.
+- `onDone` is a callback `function(err) { ... }`; it is called when the tasks it is associated with have run
+- `tasks` are callbacks `function(done) { ... }` which should call `done()` when they are complete.
+
+The return value is an object with a function `.exec(tasks, onDone)`. Calling this function appends the new set of tasks and queues the `onDone` function once all of those tasks have completed.
+
+## Example: replacement for `parallelLimit`
 
     var parallel = require('miniq');
 
@@ -34,7 +46,7 @@ Example:
     });
 
 
-## Example: using miniq as a replacement for `parallel`
+## Example: replacement for `parallel`
 
     var parallel = require('miniq');
 
@@ -44,7 +56,7 @@ Example:
       // err is sent if any of the tasks returned an error
     });
 
-## Example: using miniq as a replacement for `series`
+## Example: replacement for `series`
 
     var parallel = require('miniq');
 
@@ -54,7 +66,7 @@ Example:
       // err is sent if any of the tasks returned an error
     });
 
-## Example: using miniq as a maximum-concurrency limiting queue
+## Example: using miniq as a shared maximum-concurrency limited queue
 
     var parallel = require('miniq');
 
@@ -66,14 +78,3 @@ Example:
       },
       function b(done) { ... }
     ], function(err) { ... });
-
-
-## API
-
-`parallel(limit, tasks, [onDone])`
-
-`onDone` is a callback `function(err) { ... }` and `tasks` are callbacks `function(done) { ... }` which should call `done()` when they are complete.
-
-Set `limit = 1` for serial execution and `limit = Infinity` for unlimited parallelism.
-
-The return value is an object with a function `.exec(tasks, onDone)`. Calling this function appends the new set of tasks and queues the `onDone` function once all of those tasks have completed.
