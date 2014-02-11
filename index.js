@@ -17,12 +17,13 @@ Parallel.prototype.concurrency = function(limit) {
 Parallel.prototype.exec = function(tasks, onDone) {
   var self = this,
       completed = [];
-  this.tasks = this.tasks.concat(tasks);
 
-  if(tasks.length == 0) {
+  if(!tasks || tasks.length == 0) {
     onDone && onDone();
-    return this;
+    return this._exec();
   }
+
+  this.tasks = this.tasks.concat(tasks);
 
   function errHandler(err, task) {
     if(tasks.indexOf(task) > -1) {
@@ -58,14 +59,18 @@ Parallel.prototype._exec = function() {
       hadError = false;
 
   function next() {
+    // if nothing is running and the queue is empty, emit empty
+    if(self.running == 0 && self.tasks.length == 0) {
+      self.emit('empty');
+    }
     // if nothing is running, then we can safely clean the removed queue
     if(self.running == 0) {
       self.removed = [];
     }
     while(self.running < self.limit && self.tasks.length > 0) {
       // need this IIFE so `task` can be referred to later on with the right value
+      self.running++;
       (function(task) {
-        self.running++;
         // avoid issues with deep recursion
         setTimeout(function() {
           // check that the task is still in the queue
