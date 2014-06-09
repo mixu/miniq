@@ -2,13 +2,17 @@ var microee = require('microee');
 
 // setTimeout is very problematic since it consumes some resources on each invocation
 // and cannot be optimized like process.nextTick
-var delay = (process && process.nextTick ? process.nextTick : (setImmediate ? setImmediate : setTimeout));
+// Node 10.x: prefer setImmediate over nextTick
+// IE10 dislikes direct assignment (https://github.com/caolan/async/pull/350)
+var delay = (typeof setImmediate === 'function' ? function (fn) { setImmediate(fn); } :
+    (process && typeof process.nextTick === 'function' ? process.nextTick : setTimeout));
 
 function Parallel(limit) {
   this.limit = limit || Infinity;
   this.running = 0;
   this.tasks = [];
   this.removed = [];
+  this.maxStack = 50;
 }
 
 microee.mixin(Parallel);
@@ -29,10 +33,7 @@ Parallel.prototype.exec = function(tasks, onDone) {
   }
 
   if (Array.isArray(tasks)) {
-    // avoid concat for memory reasons
-    tasks.forEach(function(task) {
-      self.tasks.push(task);
-    });
+    this.tasks = this.tasks.concat(tasks);
   } else {
     this.tasks.push(tasks);
   }
@@ -63,11 +64,11 @@ Parallel.prototype.exec = function(tasks, onDone) {
     this.on('error', errHandler)
         .when('done', doneHandler);
   }
-  this._next();
+  this._next(1);
   return this;
 };
 
-Parallel.prototype._next = function() {
+Parallel.prototype._next = function(depth) {
   var self = this;
   // if nothing is running and the queue is empty, emit empty
   if(self.running == 0 && self.tasks.length == 0) {
@@ -80,19 +81,19 @@ Parallel.prototype._next = function() {
   while(self.running < self.limit && self.tasks.length > 0) {
     // need this IIFE so `task` can be referred to later on with the right value
     self.running++;
-    self._runTask(self.tasks.shift());
+    self._runTask(self.tasks.shift(), depth + 1);
   }
 };
 
-Parallel.prototype._runTask = function(task) {
+Parallel.prototype._runTask = function(task, depth) {
   var self = this;
-  // avoid issues with deep recursion
-  delay(function() {
+
+  function run() {
     // check that the task is still in the queue
     // (as it may have been removed due to a failure)
     if(self.removed.indexOf(task) > -1) {
       self.running--;
-      self._next();
+      self._next(depth);
       return;
     }
 
@@ -102,9 +103,17 @@ Parallel.prototype._runTask = function(task) {
         return self.emit('error', err, task);
       }
       self.emit('done', task);
-      self._next();
+      self._next(depth);
     });
-  }, 0);
+  }
+
+  // avoid issues with deep recursion
+  if (depth > this.maxStack) {
+    depth = 0;
+    delay(run, 0);
+  } else {
+    run();
+  }
 };
 
 Parallel.prototype.removeTasks = function(tasks) {
