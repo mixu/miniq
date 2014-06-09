@@ -1,6 +1,6 @@
 {
   "name": "miniq",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Yet another tiny async control flow library, implements parallelLimit, with the ability to share the concurrency-limited queue.",
   "main": "index.js",
   "directories": {
