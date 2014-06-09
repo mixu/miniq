@@ -1,4 +1,4 @@
-TESTS += test/*.test.js
+TESTS += test/*.js
 
 test:
 	@mocha \
@@ -7,6 +7,8 @@ test:
 	--slow 2000ms \
 	--bail \
 	$(TESTS)
+
+.PHONY: test
 
 build:
 	-mkdir ./dist
