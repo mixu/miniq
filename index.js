@@ -7,6 +7,8 @@ var microee = require('microee');
 var delay = (typeof setImmediate === 'function' ? function (fn) { setImmediate(fn); } :
     (process && typeof process.nextTick === 'function' ? process.nextTick : setTimeout));
 
+var taskBatchId = 0;
+
 function Parallel(limit) {
   this.limit = limit || Infinity;
   this.running = 0;
@@ -28,8 +30,22 @@ Parallel.prototype.exec = function(tasks, onDone) {
 
   if(!tasks || tasks.length == 0) {
     onDone && onDone();
-    this._next();
+    this._next(1);
     return this;
+  }
+
+  var tasksInCurrentExec = (Array.isArray(tasks) ? tasks.length : 1),
+      completedInCurrentExec = 0,
+      errorInCurrentExec = false,
+      currentBatchId = taskBatchId++;
+
+  tasks.forEach(function(item) {
+    item._batchId = currentBatchId;
+  });
+
+  if(onDone) {
+    this.on('error', errHandler)
+        .when('done', doneHandler);
   }
 
   if (Array.isArray(tasks)) {
@@ -39,31 +55,30 @@ Parallel.prototype.exec = function(tasks, onDone) {
   }
 
   function errHandler(err, task) {
-    if(tasks.indexOf(task) > -1) {
-      self.removeListener('error', errHandler);
-      self.removeListener('done', doneHandler);
-      self.removeTasks(tasks);
-      onDone(err);
+    if (task._batchId != currentBatchId) {
+      return;
     }
+    errorInCurrentExec = true;
+    self.removeListener('error', errHandler);
+    self.removeListener('done', doneHandler);
+    self.removeTasks(tasks);
+    onDone(err);
   }
   function doneHandler(task) {
-    if(tasks.indexOf(task) > -1) {
-      completed.push(task);
-    } else {
+    if (task._batchId != currentBatchId) {
       return false;
     }
-    var allDone = completed.length == tasks.length;
-    if(allDone) {
+    completedInCurrentExec++;
+    if (errorInCurrentExec) {
+      return false;
+    }
+    if(completedInCurrentExec == tasksInCurrentExec) {
       self.removeListener('error', errHandler);
       onDone();
     }
-    return allDone;
+    return (completedInCurrentExec == tasksInCurrentExec);
   }
 
-  if(onDone) {
-    this.on('error', errHandler)
-        .when('done', doneHandler);
-  }
   this._next(1);
   return this;
 };
@@ -128,5 +143,10 @@ Parallel.prototype.removeTasks = function(tasks) {
 };
 
 module.exports = function(limit, tasks, onDone) {
-  return new Parallel(limit).exec(tasks, onDone);
+  var p = new Parallel(limit);
+  // tasks must run after the return has completed
+  delay(function() {
+    p.exec(tasks, onDone);
+  });
+  return p;
 };
