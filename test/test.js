@@ -104,6 +104,11 @@ exports['parallel tests'] = {
     ]);
   },
 
+  'no callback, single function rather than array': function(testDone) {
+    parallel(1, function(done) { done(); testDone(); });
+  },
+
+
   'add to queue while exec': function(testDone) {
     var callOrder = [];
 

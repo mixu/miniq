@@ -28,7 +28,7 @@ Parallel.prototype.exec = function(tasks, onDone) {
   var self = this,
       completed = [];
 
-  if(!tasks || tasks.length == 0) {
+  if(!tasks || (Array.isArray(tasks) && tasks.length === 0)) {
     onDone && onDone();
     this._next(1);
     return this;
@@ -39,7 +39,7 @@ Parallel.prototype.exec = function(tasks, onDone) {
       errorInCurrentExec = false,
       currentBatchId = taskBatchId++;
 
-  tasks.forEach(function(item) {
+  (Array.isArray(tasks) ? tasks : [ tasks ] ).forEach(function(item) {
     item._batchId = currentBatchId;
   });
 
