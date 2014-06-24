@@ -7,7 +7,7 @@
     "test": "test"
   },
   "dependencies": {
-    "microee": "~0.0.5"
+    "microee": "~0.0.6"
   },
   "devDependencies": {
     "gluejs": "~2.3.2"
