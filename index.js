@@ -101,17 +101,21 @@ Parallel.prototype._next = function(depth) {
 };
 
 Parallel.prototype._runTask = function(task, depth) {
-  var self = this;
+  var self = this,
+      removedLength = 0;
 
   function run() {
     // check that the task is still in the queue
     // (as it may have been removed due to a failure)
-    if(self.removed.indexOf(task) > -1) {
+    if(removedLength !== 0 &&
+       removedLength !== self.removed.length &&
+       // avoid calling indexOf if the number of removed items has not changed,
+       // which occurs rarely
+       self.removed.indexOf(task) > -1) {
       self.running--;
       self._next(depth);
       return;
     }
-
     task(function(err) {
       self.running--;
       if(err) {
@@ -125,6 +129,7 @@ Parallel.prototype._runTask = function(task, depth) {
   // avoid issues with deep recursion
   if (depth > this.maxStack) {
     depth = 0;
+    removedLength = this.removed.length;
     delay(run, 0);
   } else {
     run();
@@ -133,8 +138,8 @@ Parallel.prototype._runTask = function(task, depth) {
 
 Parallel.prototype.removeTasks = function(tasks) {
   var self = this;
-  this.removed = this.removed.concat(tasks);
   tasks.forEach(function(task) {
+    self.removed.push(task);
     var index = self.tasks.indexOf(task);
     if(index > -1) {
       self.tasks.splice(index, 1);

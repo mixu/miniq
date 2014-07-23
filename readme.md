@@ -32,14 +32,20 @@ The return value is an object with a function `.exec(tasks, onDone)`. Calling th
 
 ## Some notes on Node 0.10.x (supported since `0.1.x`)
 
-`miniq` uses `setImmediate` when available to break call stacks. The purpose of this is to prevent stack overflows from occurring when executing in a tight loop.
+`miniq` uses `setImmediate` when available to break call stacks.
 
-However, note that this has a performance impact which can be substantial and is unnecessary if your payloads are already asynchronous - for example, with a test tree of 40k file read tasks using `file-dedupe` (which uses `miniq` internally), the runtime went from 50s to 30s simply by disabling the stack breaking.
+This is done by default in order to prevent stack overflows from occurring when executing in a tight loop. However, if your workload is already asynchronous, then you will never run into a call stack overflow since async calls break up the call stack.
 
-Because of the potential performance impact, I've added the `.maxStack` property on the queue; this is set to `50` by default, which seems to retain a good balance between call stack size and avoiding scheduling overhead. To set the `maxStack`, set it on the return value. For example:
+The `.maxStack` property on the queue controls when a `setImmediate` / `nextTick` call is inserted. It is set to `50` by default, which seems to retain a good balance between call stack size and avoiding scheduling overhead.
+
+ You should disable `maxStack` by setting it to `Infinity` if you know in advance that the work payloads are async and hence you will not need to occasionally break out of the call stack.
+
+To set the `maxStack`, set it on the return value. For example:
 
     var queue = parallel(10, [ ... ], onDone);
     queue.maxStack = Infinity;
+
+For maximum performance when operations are cheap (e.g. stat calls), set the queue `limit` to `Infinity` and the `maxStack` property to `Infinity`. This skips a lot of management overhead as all tasks are launched immediately and no stack breaks are inserted.
 
 ## Example: replacement for `parallelLimit`
 
