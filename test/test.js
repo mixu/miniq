@@ -2,9 +2,9 @@ var fs = require('fs'),
     assert = require('assert'),
     parallel = require('../index.js');
 
-exports['parallel tests'] = {
+describe('parallel tests', function(){
 
-  before: function() {
+  before(function() {
     var self = this;
     this.baseTasks = [
       function(done) {
@@ -26,9 +26,9 @@ exports['parallel tests'] = {
         }, 25);
       }
     ];
-  },
+  });
 
-  'basic series': function(testDone) {
+  it('basic series', function(testDone) {
     var self = this;
     this.callOrder = [];
     parallel(1, this.baseTasks, function(err) {
@@ -36,9 +36,9 @@ exports['parallel tests'] = {
       assert.deepEqual(self.callOrder, [1, 2, 3]);
       testDone();
     });
-  },
+  });
 
-  'basic two': function(testDone) {
+  it('basic two', function(testDone) {
     var self = this;
     this.callOrder = [];
     parallel(2, this.baseTasks, function(err) {
@@ -46,9 +46,9 @@ exports['parallel tests'] = {
       assert.deepEqual(self.callOrder, [1, 3, 2]);
       testDone();
     });
-  },
+  });
 
-  'basic unlimited': function(testDone) {
+  it('basic unlimited', function(testDone) {
     var self = this;
     this.callOrder = [];
     parallel(Infinity, this.baseTasks, function(err) {
@@ -56,16 +56,16 @@ exports['parallel tests'] = {
       assert.deepEqual(self.callOrder, [3, 1, 2]);
       testDone();
     });
-  },
+  });
 
-  'empty': function(testDone) {
+  it('empty', function(testDone) {
     parallel(1, [], function(err) {
       assert.ok(!err);
       testDone();
     });
-  },
+  });
 
-  'error serial': function(testDone) {
+  it('error serial', function(testDone) {
     parallel(1, [
       function(done) {
         done('err1');
@@ -79,9 +79,9 @@ exports['parallel tests'] = {
         assert.equal(err, 'err1');
         testDone();
       });
-  },
+  });
 
-  'error parallel': function(testDone) {
+  it('error parallel', function(testDone) {
     parallel(8, [
       function(done) {
         done('err1');
@@ -95,21 +95,20 @@ exports['parallel tests'] = {
         assert.equal(err, 'err1');
         testDone();
       });
-  },
+  });
 
-  'no callback': function(testDone) {
+  it('no callback', function(testDone) {
     parallel(1, [
       function(done) { done(); },
       function(done) { done(); testDone(); }
     ]);
-  },
+  });
 
-  'no callback, single function rather than array': function(testDone) {
+  it('no callback, single function rather than array', function(testDone) {
     parallel(1, function(done) { done(); testDone(); });
-  },
+  });
 
-
-  'add to queue while exec': function(testDone) {
+  it('add to queue while exec', function(testDone) {
     var callOrder = [];
 
     // there are no guarantees that one "done" action runs
@@ -163,9 +162,9 @@ exports['parallel tests'] = {
         callOrder.push('1-end');
         checkDone();
     });
-  },
+  });
 
-  'add to queue while exec, error': function(testDone) {
+  it('add to queue while exec, error', function(testDone) {
     var callOrder = [];
 
     // there are no guarantees that one "done" action runs
@@ -230,17 +229,5 @@ exports['parallel tests'] = {
         }
         checkDone();
     });
-  }
-};
-
-// if this module is the script being run, then run the tests:
-if (module == require.main) {
-  var mocha = require('child_process').spawn('mocha', [ '--colors', '--ui', 'exports', '--reporter', 'spec', __filename ]);
-  mocha.stderr.on('data', function (data) {
-    if (/^execvp\(\)/.test(data)) {
-      console.log('You need mocha: `npm install -g mocha`');
-    }
   });
-  mocha.stdout.pipe(process.stdout);
-  mocha.stderr.pipe(process.stderr);
-}
+});

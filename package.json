@@ -7,13 +7,14 @@
     "test": "test"
   },
   "dependencies": {
-    "microee": "~0.0.6"
+    "microee": "~0.0.6",
+    "ondone": "~1.0.0"
   },
   "devDependencies": {
     "gluejs": "~2.3.2"
   },
   "scripts": {
-    "test": "node test/test.js"
+    "test": "mocha -R spec test/test.js"
   },
   "repository": {
     "type": "git",

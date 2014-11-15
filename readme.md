@@ -2,6 +2,10 @@
 
 miniq is yet another tiny async control flow library. It implements parallelLimit, with the ability to share the concurrency-limited queue.
 
+## Changelog
+
+`v1.0.0`: reduced the overall size by using [`ondone`](https://github.com/mixu/ondone) for the "wait to complete" functionality. Deprecated the `removeTasks()` and `concurrency()` methods. Added the `isFull` and `isEmpty` methods.
+
 ## Features
 
 - small: miniq only implements `parallelLimit`
@@ -28,7 +32,11 @@ For example, if you are writing something that does a recursive directory traver
 - `onDone` is a callback `function(err) { ... }`; it is called when the tasks it is associated with have run
 - `tasks` are callbacks `function(done) { ... }` which should call `done()` when they are complete.
 
-The return value is an object with a function `.exec(tasks, onDone)`. Calling this function appends the new set of tasks and queues the `onDone` function once all of those tasks have completed.
+The return value is an object with the following API:
+
+- `.exec(tasks, [onDone])`: appends the new set of tasks and queues the `onDone` function once all of those tasks have completed.
+- `isEmpty`: returns true if the queue is empty.
+- `isFull`: returns true if the queue is currently running the maximum number of tasks.
 
 ## Some notes on Node 0.10.x (supported since `0.1.x`)
 
