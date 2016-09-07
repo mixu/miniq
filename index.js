@@ -27,7 +27,10 @@ Parallel.prototype.isEmpty = function() {
 
 Parallel.prototype.exec = function(tasks, onDone) {
   if(!tasks || (Array.isArray(tasks) && tasks.length === 0)) {
-    onDone && onDone();
+   if (this.isEmpty()) {
+    this.emit('empty');
+   }
+   onDone && onDone();
     return this;
   }
 

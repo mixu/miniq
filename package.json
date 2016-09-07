@@ -7,11 +7,11 @@
     "test": "test"
   },
   "dependencies": {
-    "microee": "~0.0.6",
+    "microee": "0.0.6",
     "ondone": "~1.0.0"
   },
   "devDependencies": {
-    "gluejs": "~2.3.2"
+    "gluejs": "~2.4.0"
   },
   "scripts": {
     "test": "mocha -R spec test/test.js"

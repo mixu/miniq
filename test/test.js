@@ -65,6 +65,12 @@ describe('parallel tests', function(){
     });
   });
 
+  it('empty emit', function(testDone) {
+    var queue = parallel(1);
+    queue.once('empty', testDone);
+    queue.exec([]);
+  });
+
   it('error serial', function(testDone) {
     parallel(1, [
       function(done) {

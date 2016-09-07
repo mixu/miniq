@@ -4,6 +4,8 @@ miniq is yet another tiny async control flow library. It implements parallelLimi
 
 ## Changelog
 
+`v1.0.1`: when given an empty tasks array, `empty` was not emitted.
+
 `v1.0.0`: reduced the overall size by using [`ondone`](https://github.com/mixu/ondone) for the "wait to complete" functionality. Deprecated the `removeTasks()` and `concurrency()` methods. Added the `isFull` and `isEmpty` methods.
 
 ## Features
